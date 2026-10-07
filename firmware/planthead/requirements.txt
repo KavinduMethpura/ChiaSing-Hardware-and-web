@@ -1,0 +1,11 @@
+adafruit-io
+adafruit-blinka
+adafruit-circuitpython-seesaw
+python-dotenv
+google-api-python-client
+google-auth
+google-auth-oauthlib
+librosa
+flask
+flask-cors
+requests

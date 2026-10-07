@@ -1,0 +1,17 @@
+[Unit]
+Description=PlantHead Local Playback & Status API
+After=network-online.target sound.target avahi-daemon.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=planthead1
+WorkingDirectory=/home/planthead1/planthead
+ExecStart=/home/planthead1/planthead/venv/bin/python3 api.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

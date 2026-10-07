@@ -1,0 +1,17 @@
+[Unit]
+Description=PlantHead Telemetry & Data Collection (Soil, Camera, Audio)
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=planthead1
+WorkingDirectory=/home/planthead1/planthead
+ExecStart=/home/planthead1/planthead/venv/bin/python3 main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

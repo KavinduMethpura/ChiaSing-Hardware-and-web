@@ -1,0 +1,19 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Environment Secrets
+.env
+*.env
+
+# Google Drive Secrets
+credentials.json
+gdrive_token.json
+**/secrets/*.json
+!**/secrets/.gitkeep
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class

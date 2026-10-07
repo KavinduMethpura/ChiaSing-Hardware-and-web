@@ -1,0 +1,10 @@
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name replace-wildcards="yes">PlantHead %h</name>
+  <service>
+    <type>_planthead._tcp</type>
+    <port>5000</port>
+    <txt-record>device_id=planthead1</txt-record>
+  </service>
+</service-group>

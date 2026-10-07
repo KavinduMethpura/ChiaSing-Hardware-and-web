@@ -1,0 +1,4 @@
+credentials.json
+gdrive_token.json
+__pycache__/
+*.pyc

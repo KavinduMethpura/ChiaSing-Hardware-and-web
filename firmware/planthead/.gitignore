@@ -1,0 +1,9 @@
+.env
+secrets/*.json
+!secrets/.gitkeep
+data/images/*.jpg
+data/audio/*.wav
+data/*.csv
+logs/*.log
+__pycache__/
+*.pyc
