@@ -15,6 +15,7 @@ Stop with Ctrl+C (or, if running as a systemd service:
 ).
 """
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import threading
 
@@ -26,18 +27,34 @@ from audio import mic_recorder
 
 def setup_logging():
     os.makedirs(config.LOG_DIR, exist_ok=True)
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        handlers=[
-            logging.FileHandler(os.path.join(config.LOG_DIR, "planthead.log")),
-            logging.StreamHandler(),
-        ],
-    )
+    log_file = os.path.join(config.LOG_DIR, "planthead.log")
+    file_handler = RotatingFileHandler(log_file, maxBytes=2 * 1024 * 1024, backupCount=1)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    root_logger.handlers = [file_handler, stream_handler]
+
+
+def cleanup_temp_dirs():
+    """Ensure data/images and data/audio are clean on boot."""
+    for folder in [config.CAMERA_SAVE_DIR, config.AUDIO_SAVE_DIR]:
+        if os.path.exists(folder):
+            for f in os.listdir(folder):
+                fp = os.path.join(folder, f)
+                try:
+                    if os.path.isfile(fp):
+                        os.remove(fp)
+                except OSError:
+                    pass
 
 
 def main():
     setup_logging()
+    cleanup_temp_dirs()
     logger = logging.getLogger("planthead.main")
     logger.info("Starting PlantHead — soil + camera + mic")
 

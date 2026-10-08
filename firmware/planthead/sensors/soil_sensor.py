@@ -8,7 +8,6 @@ Reads the STEMMA soil sensor over I2C every SOIL_INTERVAL_SEC and:
 Run standalone to test just this piece:
     python3 -m sensors.soil_sensor
 """
-import csv
 import os
 import time
 import logging
@@ -21,9 +20,6 @@ import config
 from io_client import send
 
 logger = logging.getLogger("planthead.soil_sensor")
-
-CSV_PATH = os.path.join(config.CAMERA_SAVE_DIR.rsplit("/", 1)[0], "soil_log.csv")
-# resolves to "data/soil_log.csv" given CAMERA_SAVE_DIR = "data/images"
 
 
 def init_sensor(addr=config.SOIL_SENSOR_ADDR):
@@ -38,27 +34,10 @@ def read_once(ss):
     return moisture, temp
 
 
-def init_csv():
-    """Create the CSV with a header row if it doesn't exist yet."""
-    os.makedirs(os.path.dirname(CSV_PATH), exist_ok=True)
-    if not os.path.exists(CSV_PATH):
-        with open(CSV_PATH, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(["date", "time", "moisture", "temperature_c"])
-        logger.info(f"Created new soil log at {CSV_PATH}")
-
-
-def log_to_csv(date_str, time_str, moisture, temp):
-    with open(CSV_PATH, "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([date_str, time_str, moisture, round(temp, 2)])
-
 
 def run_loop():
     ss = init_sensor()
-    init_csv()
     logger.info(f"Soil sensor initialised at address {hex(config.SOIL_SENSOR_ADDR)}")
-    logger.info(f"Logging locally to {CSV_PATH}")
 
     while True:
         try:
@@ -68,9 +47,7 @@ def run_loop():
             date_str = now.strftime("%Y-%m-%d")
             time_str = now.strftime("%H:%M:%S")
 
-            print(f"{date_str} {time_str} | Moisture: {moisture}\tTemp: {temp:.1f}C")
-
-            log_to_csv(date_str, time_str, moisture, temp)
+            logger.info(f"{date_str} {time_str} | Moisture: {moisture} | Temp: {temp:.1f}C -> Adafruit IO")
 
             send(config.FEED_SOIL_MOISTURE, moisture)
             send(config.FEED_SOIL_TEMP, round(temp, 2))

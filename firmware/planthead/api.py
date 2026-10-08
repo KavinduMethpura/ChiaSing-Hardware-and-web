@@ -12,6 +12,7 @@ Endpoints:
 """
 import logging
 import os
+from logging.handlers import RotatingFileHandler
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
@@ -19,17 +20,17 @@ import config
 import gdrive_client
 from audio import speaker_player
 
-# Set up logging
+# Set up logging with rotating file handler (max 2MB)
 os.makedirs(config.LOG_DIR, exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[
-        logging.FileHandler(os.path.join(config.LOG_DIR, "planthead_api.log")),
-        logging.StreamHandler(),
-    ],
-)
+api_log_file = os.path.join(config.LOG_DIR, "planthead_api.log")
+api_handler = RotatingFileHandler(api_log_file, maxBytes=2 * 1024 * 1024, backupCount=1)
+api_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+
 logger = logging.getLogger("planthead.api")
+logger.setLevel(logging.INFO)
+logger.handlers = [api_handler, stream_handler]
 
 app = Flask(__name__)
 CORS(app)  # Enable Cross-Origin requests from the laptop web app

@@ -45,15 +45,24 @@ def capture_image():
 def run_loop():
     logger.info("Camera capture loop starting")
     while True:
+        filepath = None
         try:
             filepath = capture_image()
             size_kb = os.path.getsize(filepath) / 1024
             logger.info(f"Captured {filepath} ({size_kb:.1f} KB)")
 
-            upload_file(filepath, config.GDRIVE_IMAGES_FOLDER_ID)  # logs its own success/failure internally
-
+            # Upload to Google Drive
+            upload_file(filepath, config.GDRIVE_IMAGES_FOLDER_ID)
         except Exception as e:
-            logger.error(f"Camera capture failed: {e}")
+            logger.error(f"Camera capture or upload failed: {e}")
+        finally:
+            # Auto-delete local image immediately to prevent SD card fill-up
+            if filepath and os.path.exists(filepath):
+                try:
+                    os.remove(filepath)
+                    logger.debug(f"Removed local temp image {filepath}")
+                except OSError as e:
+                    logger.warning(f"Failed to remove temp image: {e}")
 
         time.sleep(config.CAMERA_INTERVAL_SEC)
 

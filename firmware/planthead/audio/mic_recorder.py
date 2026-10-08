@@ -14,7 +14,6 @@ entire session's audio.
 Run standalone to test just this piece:
     python3 -m audio.mic_recorder
 """
-import csv
 import logging
 import os
 import subprocess
@@ -27,26 +26,6 @@ from gdrive_client import upload_file
 from audio.audio_features import extract_features
 
 logger = logging.getLogger("planthead.mic_recorder")
-
-CSV_PATH = os.path.join(config.CAMERA_SAVE_DIR.rsplit("/", 1)[0], "audio_log.csv")
-# resolves to "data/audio_log.csv"
-
-
-def init_csv():
-    os.makedirs(os.path.dirname(CSV_PATH), exist_ok=True)
-    if not os.path.exists(CSV_PATH):
-        with open(CSV_PATH, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(
-                ["date", "time", "filename", "duration_sec", "rms", "onset_count"]
-            )
-        logger.info(f"Created new audio log at {CSV_PATH}")
-
-
-def log_to_csv(date_str, time_str, filename, duration_sec, rms, onset_count):
-    with open(CSV_PATH, "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([date_str, time_str, filename, duration_sec, rms, onset_count])
 
 
 def record_segment():
@@ -100,17 +79,26 @@ def process_segment(filepath):
                 pass
         return
 
-    # Sound Event Detected! Log locally and upload to Google Drive
-    log_to_csv(date_str, time_str, filename, duration_sec, rms, onset_count)
+    # Sound Event Detected! Log summary to Adafruit IO and upload audio to Google Drive
     summary = f"{filename} | {duration_sec}s | rms={rms} | SOUND DETECTED"
     logger.info(f"Sound event captured: {summary}")
 
-    send(config.FEED_AUDIO_LOG, summary)
-    upload_file(filepath, config.GDRIVE_AUDIO_FOLDER_ID)
+    try:
+        send(config.FEED_AUDIO_LOG, summary)
+        upload_file(filepath, config.GDRIVE_AUDIO_FOLDER_ID)
+    except Exception as e:
+        logger.error(f"Failed to upload sound event: {e}")
+    finally:
+        # Auto-delete local audio file immediately after upload to prevent SD card fill-up
+        if os.path.exists(filepath):
+            try:
+                os.remove(filepath)
+                logger.debug(f"Removed local temp audio {filepath}")
+            except OSError as e:
+                logger.warning(f"Failed to remove temp audio: {e}")
 
 
 def run_loop():
-    init_csv()
     logger.info(
         f"Mic recorder starting — continuous {config.AUDIO_SEGMENT_SEC}s segments"
     )
