@@ -48,7 +48,7 @@ AUDIO_SAMPLE_RATE = 44100
 AUDIO_CHANNELS = 1
 # Minimum RMS volume to upload. If room is quiet (RMS < threshold), file is discarded.
 # Set to 0.0 to disable silence filtering and upload all ambient silence.
-AUDIO_RMS_THRESHOLD = float(os.getenv("AUDIO_RMS_THRESHOLD", "0.0010"))
+AUDIO_RMS_THRESHOLD = float(os.getenv("AUDIO_RMS_THRESHOLD", "0.0001"))
 ALSA_DEVICE = os.getenv("ALSA_DEVICE", "plughw:0,0")  # card 0 on Pi Zero Lite
 
 # --- Speaker Output (MAX98357A mono amp) & Music Playback ---
