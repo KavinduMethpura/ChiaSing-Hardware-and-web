@@ -81,23 +81,32 @@ def process_segment(filepath):
     time_str = now.strftime("%H:%M:%S")
     filename = os.path.basename(filepath)
 
-    if features:
-        log_to_csv(
-            date_str, time_str, filename,
-            features["duration_sec"], features["rms"], features["onset_count"],
+    rms = features.get("rms", 0.0) if features else 0.0
+    duration_sec = features.get("duration_sec", config.AUDIO_SEGMENT_SEC) if features else config.AUDIO_SEGMENT_SEC
+    onset_count = features.get("onset_count", 0) if features else 0
+
+    # Silence Detection Filter:
+    # If the environment is calm/quiet (RMS below threshold), discard the file
+    # to conserve local SD card storage and avoid uploading silent clips to Drive.
+    if config.AUDIO_RMS_THRESHOLD > 0 and rms < config.AUDIO_RMS_THRESHOLD:
+        logger.info(
+            f"Segment {filename} was calm/silent (RMS: {rms:.5f} < threshold {config.AUDIO_RMS_THRESHOLD}). "
+            f"Discarded file to conserve storage."
         )
-        summary = (
-            f"{filename} | {features['duration_sec']}s | "
-            f"rms={features['rms']} | onsets={features['onset_count']}"
-        )
-        logger.info(f"Segment processed: {summary}")
-    else:
-        log_to_csv(date_str, time_str, filename, config.AUDIO_SEGMENT_SEC, "", "")
-        summary = f"{filename} | features unavailable"
-        logger.warning(summary)
+        if os.path.exists(filepath):
+            try:
+                os.remove(filepath)
+            except OSError:
+                pass
+        return
+
+    # Sound Event Detected! Log locally and upload to Google Drive
+    log_to_csv(date_str, time_str, filename, duration_sec, rms, onset_count)
+    summary = f"{filename} | {duration_sec}s | rms={rms} | SOUND DETECTED"
+    logger.info(f"Sound event captured: {summary}")
 
     send(config.FEED_AUDIO_LOG, summary)
-    upload_file(filepath, config.GDRIVE_AUDIO_FOLDER_ID)  # logs its own success/failure
+    upload_file(filepath, config.GDRIVE_AUDIO_FOLDER_ID)
 
 
 def run_loop():
