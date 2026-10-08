@@ -46,10 +46,10 @@ AUDIO_SAVE_DIR = "data/audio"
 AUDIO_SEGMENT_SEC = 60      # length of each recorded WAV segment, in seconds
 AUDIO_SAMPLE_RATE = 44100
 AUDIO_CHANNELS = 1
-ALSA_DEVICE = "plughw:1,0"  # check with `arecord -l`, adjust card number if different
+ALSA_DEVICE = os.getenv("ALSA_DEVICE", "plughw:0,0")  # card 0 on Pi Zero Lite
 
 # --- Speaker Output (MAX98357A mono amp) & Music Playback ---
-SPEAKER_ALSA_DEVICE = "plughw:1,0"  # check with `aplay -l`
+SPEAKER_ALSA_DEVICE = os.getenv("SPEAKER_ALSA_DEVICE", "plughw:0,0")  # card 0 on Pi Zero Lite
 SPEAKER_TEST_FILE = "audio/test_sounds/test.wav"
 MUSIC_SAVE_DIR = "data/music"       # local cache directory for downloaded music tracks
 

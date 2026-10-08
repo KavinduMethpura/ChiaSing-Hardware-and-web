@@ -138,16 +138,18 @@ cd ~/planthead
 ### Option A: Automated Setup (Recommended)
 Run the automated setup script included in the directory:
 ```bash
-chmod +x setup.sh
+chmod +x setup.sh enable_services.sh
 ./setup.sh
 ```
 This script automatically:
-1. Installs all required `apt` packages (`python3-venv`, `ffmpeg`, `i2c-tools`, `rpicam-apps`, `alsa-utils`, `avahi-daemon`, `comitup`).
-2. Creates the Python virtual environment (`venv`).
-3. Installs all Python dependencies from `requirements.txt`.
+1. Installs all required `apt` packages (`python3-venv`, `python3-numpy`, `ffmpeg`, `i2c-tools`, `rpicam-apps`, `alsa-utils`, `avahi-daemon`, `comitup`).
+2. Creates the Python virtual environment (`venv`) with system packages.
+3. Installs all lightweight Python dependencies from `requirements.txt`.
 4. Creates necessary data folders (`data/images`, `data/audio`, `data/music`, `logs`, `secrets`).
-5. Configures the Avahi mDNS service file in `/etc/avahi/services/planthead.service`.
-6. Registers the systemd services (`planthead.service` and `planthead-api.service`).
+5. Configures Avahi mDNS discovery (`/etc/avahi/services/planthead.service`).
+6. Registers both systemd services (`planthead.service` and `planthead-api.service`).
+
+*(If you ever need to reconfigure or restart only the background services without reinstalling packages, simply run: `./enable_services.sh`)*
 
 ---
 
@@ -353,7 +355,7 @@ arecord -l
 *(Confirm ALSA capture device `card 1, device 0` is listed).*
 Test 5-second audio recording:
 ```bash
-arecord -D plughw:1,0 -c 1 -r 44100 -f S32_LE -t wav -d 5 test_mic.wav
+arecord -D plughw:0,0 -c 1 -r 44100 -f S32_LE -t wav -d 5 test_mic.wav
 ```
 
 ### 4. Speaker Output Check
